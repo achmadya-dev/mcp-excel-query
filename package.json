@@ -1,0 +1,51 @@
+{
+  "name": "@achmadya-dev/mcp-excel-query",
+  "version": "0.1.0",
+  "description": "Model Context Protocol (MCP) server for local Excel file (.xlsx) reading and manipulation",
+  "type": "module",
+  "author": "achmadya",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/achmadya-dev/mcp-excel-query.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "excel",
+    "exceljs",
+    "xlsx"
+  ],
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-excel-query": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "start": "node dist/index.js",
+    "prepublishOnly": "pnpm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "exceljs": "^4.4.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@jest/globals": "30.4.1",
+    "@types/jest": "30.0.0",
+    "@types/node": "22.10.0",
+    "jest": "30.4.2",
+    "ts-jest": "29.4.11",
+    "typescript": "5.7.2"
+  }
+}
