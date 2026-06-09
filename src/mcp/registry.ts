@@ -1,128 +1,151 @@
 import { defineTool, ToolError } from "./server.js";
-import {
-  listSheets,
-  readSheet,
-  getMetadata,
-  createFile,
-  createSheet,
-  writeCell,
-  appendRows,
-} from "./excel/excel.js";
-import {
-  listSheetsInputSchema,
-  listSheetsOutputShape,
-  readSheetInputSchema,
-  readSheetOutputShape,
-  getMetadataInputSchema,
-  getMetadataOutputShape,
-  createFileInputSchema,
-  createSheetInputSchema,
-  writeCellInputSchema,
-  appendRowsInputSchema,
-  operationResultOutputShape,
-} from "./excel/schema.js";
+import * as excel from "./excel/excel.js";
+import * as schema from "./excel/schema.js";
 
-export const excel_list_sheets = defineTool({
-  name: "excel_list_sheets",
-  description: "List the names of all worksheets inside an Excel file (.xlsx)",
-  inputSchema: listSheetsInputSchema,
-  outputSchema: listSheetsOutputShape,
-  handler: async ({ filePath }) => {
+function wrap<A extends object, R>(
+  label: string,
+  fn: (args: A) => Promise<R>
+): (args: A) => Promise<R> {
+  return async (args: A) => {
     try {
-      return await listSheets(filePath);
+      return await fn(args);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      throw new ToolError(`Failed to list sheets: ${msg}`);
+      throw new ToolError(`${label}: ${msg}`);
     }
-  },
-});
+  };
+}
 
 export const excel_read_sheet = defineTool({
   name: "excel_read_sheet",
-  description: "Read data rows from a specific worksheet in an Excel file. Supports range (A1 notation), headerRow index, and paginated reading (limit/offset).",
-  inputSchema: readSheetInputSchema,
-  outputSchema: readSheetOutputShape,
-  handler: async (args) => {
-    try {
-      return await readSheet(args);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      throw new ToolError(`Failed to read sheet: ${msg}`);
-    }
-  },
+  description:
+    "Read worksheet data as JSON rows. Supports range, pagination, showFormula, showStyle, dateFormat (or dateFormat: cell for per-cell numFmt). Returns mergedCells and per-cell validation metadata when present.",
+  inputSchema: schema.readSheetInputSchema,
+  outputSchema: schema.readSheetOutputShape,
+  handler: wrap("Failed to read sheet", excel.readSheet),
 });
 
 export const excel_get_metadata = defineTool({
   name: "excel_get_metadata",
-  description: "Retrieve metadata from an Excel file, including creator, modification dates, and lists of sheets with their sizes.",
-  inputSchema: getMetadataInputSchema,
-  outputSchema: getMetadataOutputShape,
-  handler: async ({ filePath }) => {
-    try {
-      return await getMetadata(filePath);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      throw new ToolError(`Failed to get metadata: ${msg}`);
-    }
-  },
+  description:
+    "Workbook metadata: sheet names, dimensions, creator, dates. Use includeRanges for usedRange and mergedCells per sheet (replaces list_sheets).",
+  inputSchema: schema.getMetadataInputSchema,
+  outputSchema: schema.getMetadataOutputShape,
+  handler: wrap("Failed to get metadata", excel.getMetadata),
 });
 
 export const excel_create_file = defineTool({
   name: "excel_create_file",
-  description: "Create a new Excel file (.xlsx) with an optional first worksheet and optional headers.",
-  inputSchema: createFileInputSchema,
-  outputSchema: operationResultOutputShape,
-  handler: async (args) => {
-    try {
-      return await createFile(args);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      throw new ToolError(`Failed to create Excel file: ${msg}`);
-    }
-  },
+  description: "Create a new Excel file with optional first sheet and headers.",
+  inputSchema: schema.createFileInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to create Excel file", excel.createFile),
 });
 
-export const excel_create_sheet = defineTool({
-  name: "excel_create_sheet",
-  description: "Add a new blank worksheet to an existing Excel file (.xlsx).",
-  inputSchema: createSheetInputSchema,
-  outputSchema: operationResultOutputShape,
-  handler: async (args) => {
-    try {
-      return await createSheet(args);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      throw new ToolError(`Failed to create worksheet: ${msg}`);
-    }
-  },
+export const excel_write_range = defineTool({
+  name: "excel_write_range",
+  description:
+    "Write data: values (2D), data (objects), append rows (append:true), create blank sheet (newSheet:true), single cell/formula (startCell + values), optional style for one cell.",
+  inputSchema: schema.writeRangeInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to write range", excel.writeRange),
 });
 
-export const excel_write_cell = defineTool({
-  name: "excel_write_cell",
-  description: "Write or update a value in a specific cell (e.g., 'A1') of a worksheet. The cell value can be a string, number, boolean, or null.",
-  inputSchema: writeCellInputSchema,
-  outputSchema: operationResultOutputShape,
-  handler: async (args) => {
-    try {
-      return await writeCell(args);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      throw new ToolError(`Failed to write cell: ${msg}`);
-    }
-  },
+export const excel_format_range = defineTool({
+  name: "excel_format_range",
+  description:
+    "Format a cell range (font, fill, border, alignment, numFmt). Set mergeCells:true to merge. Use for styling after excel_write_range.",
+  inputSchema: schema.formatRangeInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to format range", excel.formatRange),
 });
 
-export const excel_append_rows = defineTool({
-  name: "excel_append_rows",
-  description: "Append one or more rows of data to the bottom of a worksheet. Each row is represented as an array of cell values.",
-  inputSchema: appendRowsInputSchema,
-  outputSchema: operationResultOutputShape,
-  handler: async (args) => {
-    try {
-      return await appendRows(args);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      throw new ToolError(`Failed to append rows: ${msg}`);
-    }
-  },
+export const excel_copy_sheet = defineTool({
+  name: "excel_copy_sheet",
+  description: "Copy an existing worksheet to a new sheet name.",
+  inputSchema: schema.copySheetInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to copy sheet", excel.copySheet),
 });
+
+export const excel_rename_sheet = defineTool({
+  name: "excel_rename_sheet",
+  description: "Rename a worksheet.",
+  inputSchema: schema.renameSheetInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to rename sheet", excel.renameSheet),
+});
+
+export const excel_delete_sheet = defineTool({
+  name: "excel_delete_sheet",
+  description: "Delete a worksheet (cannot delete the only sheet).",
+  inputSchema: schema.deleteSheetInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to delete sheet", excel.deleteSheet),
+});
+
+export const excel_copy_range = defineTool({
+  name: "excel_copy_range",
+  description: "Copy a cell range to another location (optionally another sheet).",
+  inputSchema: schema.copyRangeInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to copy range", excel.copyRange),
+});
+
+export const excel_delete_range = defineTool({
+  name: "excel_delete_range",
+  description:
+    "Delete a cell range and shift remaining cells. Use shiftDirection 'up' for row deletion, 'left' for column deletion.",
+  inputSchema: schema.deleteRangeInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to delete range", excel.deleteRange),
+});
+
+export const excel_unmerge_cells = defineTool({
+  name: "excel_unmerge_cells",
+  description: "Unmerge a previously merged range.",
+  inputSchema: schema.unmergeCellsInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to unmerge cells", excel.unmergeCells),
+});
+
+export const excel_create_table = defineTool({
+  name: "excel_create_table",
+  description: "Create a native Excel table from a data range.",
+  inputSchema: schema.createTableInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to create table", excel.createTable),
+});
+
+export const excel_insert_rows = defineTool({
+  name: "excel_insert_rows",
+  description: "Insert empty rows at a 1-based row index.",
+  inputSchema: schema.insertRowsInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to insert rows", excel.insertRows),
+});
+
+export const excel_insert_columns = defineTool({
+  name: "excel_insert_columns",
+  description: "Insert empty columns at a 1-based column index.",
+  inputSchema: schema.insertColumnsInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to insert columns", excel.insertColumns),
+});
+
+export const allExcelTools = [
+  excel_read_sheet,
+  excel_get_metadata,
+  excel_create_file,
+  excel_write_range,
+  excel_format_range,
+  excel_copy_sheet,
+  excel_rename_sheet,
+  excel_delete_sheet,
+  excel_copy_range,
+  excel_delete_range,
+  excel_unmerge_cells,
+  excel_create_table,
+  excel_insert_rows,
+  excel_insert_columns,
+] as const;

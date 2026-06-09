@@ -1,6 +1,6 @@
 {
   "name": "@achmadya-dev/mcp-excel-query",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Model Context Protocol (MCP) server for local Excel file (.xlsx) reading and manipulation",
   "type": "module",
   "author": "achmadya",

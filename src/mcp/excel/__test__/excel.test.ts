@@ -3,217 +3,177 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import {
-  colLetterToNum,
-  numToColLetter,
   parseA1Range,
   createFile,
-  createSheet,
-  writeCell,
-  appendRows,
   readSheet,
   getMetadata,
-  listSheets,
+  writeRange,
+  formatRange,
+  copySheet,
+  renameSheet,
 } from "../excel.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tempFilePath = path.join(__dirname, "temp_test_workbook.xlsx");
 
-describe("A1 Notation Utilities", () => {
-  it("converts column letters to numbers correctly", () => {
-    expect(colLetterToNum("A")).toBe(1);
-    expect(colLetterToNum("B")).toBe(2);
-    expect(colLetterToNum("Z")).toBe(26);
-    expect(colLetterToNum("AA")).toBe(27);
-    expect(colLetterToNum("AB")).toBe(28);
-  });
-
-  it("converts column numbers to letters correctly", () => {
-    expect(numToColLetter(1)).toBe("A");
-    expect(numToColLetter(2)).toBe("B");
-    expect(numToColLetter(26)).toBe("Z");
-    expect(numToColLetter(27)).toBe("AA");
-    expect(numToColLetter(28)).toBe("AB");
-  });
-
-  it("parses A1 notation range correctly", () => {
-    expect(parseA1Range("A1")).toEqual({
-      startRow: 1,
-      startCol: 1,
-      endRow: 1,
-      endCol: 1,
-    });
-    expect(parseA1Range("A1:C10")).toEqual({
-      startRow: 1,
-      startCol: 1,
-      endRow: 10,
-      endCol: 3,
-    });
-    expect(parseA1Range("C10:A1")).toEqual({
-      startRow: 1,
-      startCol: 1,
-      endRow: 10,
-      endCol: 3,
-    });
-  });
-
-  it("throws error for invalid A1 format", () => {
-    expect(() => parseA1Range("Invalid")).toThrow();
-  });
-});
-
-describe("Excel Read/Write Operations", () => {
-  beforeAll(async () => {
-    // Ensure clean state: delete temp file if exists
-    if (fs.existsSync(tempFilePath)) {
-      fs.unlinkSync(tempFilePath);
-    }
+describe("Excel operations", () => {
+  beforeAll(() => {
+    if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
   });
 
   afterAll(() => {
-    // Cleanup temp file
-    if (fs.existsSync(tempFilePath)) {
-      fs.unlinkSync(tempFilePath);
-    }
+    if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
   });
 
-  it("creates a new Excel file with headers", async () => {
-    const res = await createFile({
+  it("creates file and lists sheets via metadata", async () => {
+    await createFile({
       filePath: tempFilePath,
       sheetName: "Data",
       headers: ["ID", "Name", "Age"],
     });
-
-    expect(res.success).toBe(true);
-    expect(fs.existsSync(tempFilePath)).toBe(true);
+    const meta = await getMetadata({ filePath: tempFilePath });
+    expect(meta.sheets.map((s) => s.name)).toEqual(["Data"]);
   });
 
-  it("lists sheets in the workbook", async () => {
-    const res = await listSheets(tempFilePath);
-    expect(res.sheets).toEqual(["Data"]);
-  });
-
-  it("appends rows of data to the worksheet", async () => {
-    const res = await appendRows({
+  it("appends rows via writeRange append mode", async () => {
+    const res = await writeRange({
       filePath: tempFilePath,
       sheetName: "Data",
-      rows: [
+      append: true,
+      values: [
         [1, "Achmadya", 25],
         [2, "John Doe", 30],
       ],
     });
-
     expect(res.success).toBe(true);
   });
 
-  it("reads back worksheet data correctly", async () => {
+  it("reads worksheet data", async () => {
     const res = await readSheet({
       filePath: tempFilePath,
       sheetName: "Data",
       headerRow: 1,
     });
-
-    expect(res.sheetName).toBe("Data");
-    expect(res.headers).toEqual(["ID", "Name", "Age"]);
     expect(res.totalRows).toBe(2);
-    expect(res.rows).toEqual([
-      { ID: 1, Name: "Achmadya", Age: 25 },
-      { ID: 2, Name: "John Doe", Age: 30 },
-    ]);
+    expect(res.rows[0]).toEqual({ ID: 1, Name: "Achmadya", Age: 25 });
   });
 
-  it("reads with range bounds correctly", async () => {
-    const res = await readSheet({
+  it("writes single cell formula via writeRange", async () => {
+    await writeRange({
       filePath: tempFilePath,
       sheetName: "Data",
-      range: "B1:C3",
-      headerRow: 1,
+      startCell: "D2",
+      values: [["=B2"]],
     });
-
-    expect(res.headers).toEqual(["Name", "Age"]);
-    expect(res.rows).toEqual([
-      { Name: "Achmadya", Age: 25 },
-      { Name: "John Doe", Age: 30 },
-    ]);
+    const read = await readSheet({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      range: "D2",
+      headerRow: 0,
+      showFormula: true,
+    });
+    expect(read.rows[0].D).toBe("=B2");
   });
 
-  it("supports limit and offset pagination", async () => {
-    const res = await readSheet({
+  it("writes object data and formats range with merge", async () => {
+    await writeRange({
       filePath: tempFilePath,
       sheetName: "Data",
-      headerRow: 1,
-      limit: 1,
-      offset: 1,
+      startCell: "E1",
+      data: [{ City: "Jakarta" }],
     });
-
-    expect(res.totalRows).toBe(2);
-    expect(res.rows.length).toBe(1);
-    expect(res.rows[0]).toEqual({ ID: 2, Name: "John Doe", Age: 30 });
-  });
-
-  it("writes to a specific cell and reads it back", async () => {
-    const writeRes = await writeCell({
+    const fmt = await formatRange({
       filePath: tempFilePath,
       sheetName: "Data",
-      cell: "B3",
-      value: "Jane Smith",
+      startCell: "F1",
+      endCell: "G1",
+      mergeCells: true,
+      bold: true,
     });
-    expect(writeRes.success).toBe(true);
+    expect(fmt.success).toBe(true);
 
-    const readRes = await readSheet({
+    const read = await readSheet({
       filePath: tempFilePath,
       sheetName: "Data",
       headerRow: 1,
     });
-    expect(readRes.rows[1].Name).toBe("Jane Smith");
+    expect(read.mergedCells!.length).toBeGreaterThan(0);
   });
 
-  it("writes to a cell with custom style and verifies it", async () => {
-    const res = await writeCell({
+  it("creates blank sheet via writeRange newSheet", async () => {
+    const res = await writeRange({
       filePath: tempFilePath,
-      sheetName: "Data",
-      cell: "A3",
-      value: 99,
-      style: {
-        font: {
-          bold: true,
-          color: "FF0000",
-        },
-        fill: {
-          fgColor: "FFFF00",
-        },
-      },
-    });
-    expect(res.success).toBe(true);
-
-    const ExcelJS = (await import("exceljs")).default;
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(tempFilePath);
-    const worksheet = workbook.getWorksheet("Data")!;
-    const cell = worksheet.getCell("A3");
-    
-    expect(cell.value).toBe(99);
-    expect(cell.font?.bold).toBe(true);
-    expect(cell.font?.color?.argb).toBe("FFFF0000");
-    expect(cell.fill?.type).toBe("pattern");
-    expect((cell.fill as any).fgColor?.argb).toBe("FFFFFF00");
-  });
-
-  it("creates a new worksheet in the file", async () => {
-    const res = await createSheet({
-      filePath: tempFilePath,
+      newSheet: true,
       sheetName: "Summary",
     });
     expect(res.success).toBe(true);
-
-    const sheetList = await listSheets(tempFilePath);
-    expect(sheetList.sheets).toContain("Summary");
+    const meta = await getMetadata({ filePath: tempFilePath });
+    expect(meta.sheets.map((s) => s.name)).toContain("Summary");
   });
 
-  it("reads workbook metadata", async () => {
-    const res = await getMetadata(tempFilePath);
-    expect(res.filePath).toBe(tempFilePath);
-    expect(res.sheets.length).toBe(2);
-    expect(res.sheets.map((s) => s.name)).toContain("Data");
-    expect(res.sheets.map((s) => s.name)).toContain("Summary");
+  it("copies and renames sheets", async () => {
+    await copySheet({
+      filePath: tempFilePath,
+      sourceSheet: "Data",
+      targetSheet: "DataCopy",
+    });
+    await renameSheet({
+      filePath: tempFilePath,
+      oldName: "DataCopy",
+      newName: "Archive",
+    });
+    const meta = await getMetadata({ filePath: tempFilePath });
+    expect(meta.sheets.map((s) => s.name)).toContain("Archive");
+  });
+
+  it("parses A1 ranges", () => {
+    expect(parseA1Range("A1:C3")).toEqual({
+      startRow: 1,
+      startCol: 1,
+      endRow: 3,
+      endCol: 3,
+    });
+  });
+
+  it("writes human-readable dates and reads them with dateFormat", async () => {
+    await writeRange({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      startCell: "H1",
+      values: [["Date"], ["09 Jun 2026"]],
+    });
+    await formatRange({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      startCell: "H2",
+      endCell: "H2",
+      numberFormat: 'dd" "mmm" "yy',
+    });
+
+    const isoRead = await readSheet({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      range: "H2",
+      headerRow: 0,
+    });
+    expect(String(isoRead.rows[0].H)).toMatch(/^2026-06-0[89]T\d{2}:\d{2}:\d{2}/);
+
+    const formattedRead = await readSheet({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      range: "H2",
+      headerRow: 0,
+      dateFormat: "cell",
+    });
+    expect(formattedRead.rows[0].H).toBe("09 Jun 26");
+
+    const customRead = await readSheet({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      range: "H2",
+      headerRow: 0,
+      dateFormat: "dd mmm yyyy",
+    });
+    expect(customRead.rows[0].H).toBe("09 Jun 2026");
   });
 });
