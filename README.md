@@ -16,7 +16,7 @@ MCP server for local `.xlsx` files via **stdio**. TypeScript + [ExcelJS](https:/
 }
 ```
 
-## Tools (14)
+## Tools (17)
 
 | Tool | Use for |
 |------|---------|
@@ -34,6 +34,9 @@ MCP server for local `.xlsx` files via **stdio**. TypeScript + [ExcelJS](https:/
 | `excel_create_table` | Native Excel table |
 | `excel_insert_rows` | Insert empty rows |
 | `excel_insert_columns` | Insert empty columns |
+| `excel_set_sheet_visibility` | Show, hide, or very-hide a sheet |
+| `excel_set_data_validation` | Set or clear dropdown/rules validation on a range |
+| `excel_set_dimensions` | Row height, column width, sheet defaults |
 
 ### Common patterns
 
@@ -58,6 +61,15 @@ MCP server for local `.xlsx` files via **stdio**. TypeScript + [ExcelJS](https:/
 
 // Write dates as text — auto-parsed to Excel date values
 { "startCell": "H3", "values": [["09 Jun 2026"]] }
+
+// Hide a sheet
+{ "sheetName": "Archive", "state": "hidden" }
+
+// Dropdown list validation
+{ "startCell": "B2", "endCell": "B100", "type": "list", "formulae": ["\"Yes,No,Maybe\""] }
+
+// Column width and row height
+{ "range": "A1:D20", "columnWidth": 18, "rowHeight": 22 }
 ```
 
 ## Notes

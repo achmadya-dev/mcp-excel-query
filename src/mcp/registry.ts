@@ -133,6 +133,32 @@ export const excel_insert_columns = defineTool({
   handler: wrap("Failed to insert columns", excel.insertColumns),
 });
 
+export const excel_set_sheet_visibility = defineTool({
+  name: "excel_set_sheet_visibility",
+  description: "Show, hide, or very-hide a worksheet (state: visible, hidden, veryHidden).",
+  inputSchema: schema.setSheetVisibilityInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to set sheet visibility", excel.setSheetVisibility),
+});
+
+export const excel_set_data_validation = defineTool({
+  name: "excel_set_data_validation",
+  description:
+    "Set or clear data validation on a range. Supports list, whole, decimal, date, textLength, and custom rules with formulae.",
+  inputSchema: schema.setDataValidationInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to set data validation", excel.setDataValidation),
+});
+
+export const excel_set_dimensions = defineTool({
+  name: "excel_set_dimensions",
+  description:
+    "Adjust row heights and column widths by range, explicit rows/columns, or sheet defaults.",
+  inputSchema: schema.setDimensionsInputSchema,
+  outputSchema: schema.operationResultOutputShape,
+  handler: wrap("Failed to set dimensions", excel.setDimensions),
+});
+
 export const allExcelTools = [
   excel_read_sheet,
   excel_get_metadata,
@@ -148,4 +174,7 @@ export const allExcelTools = [
   excel_create_table,
   excel_insert_rows,
   excel_insert_columns,
+  excel_set_sheet_visibility,
+  excel_set_data_validation,
+  excel_set_dimensions,
 ] as const;

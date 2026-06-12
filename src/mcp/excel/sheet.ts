@@ -82,3 +82,17 @@ export async function deleteSheet(params: {
   await saveWorkbook(workbook, filePath);
   return operationSuccess(`Sheet '${sheetName}' deleted`);
 }
+
+export async function setSheetVisibility(params: {
+  filePath: string;
+  sheetName: string;
+  state: "visible" | "hidden" | "veryHidden";
+}) {
+  const { filePath, sheetName, state } = params;
+  const workbook = await loadWorkbook(filePath);
+  const worksheet = resolveWorksheet(workbook, sheetName);
+
+  worksheet.state = state;
+  await saveWorkbook(workbook, filePath);
+  return operationSuccess(`Sheet '${sheetName}' visibility set to '${state}'`);
+}

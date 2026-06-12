@@ -11,6 +11,9 @@ import {
   formatRange,
   copySheet,
   renameSheet,
+  setSheetVisibility,
+  setDataValidation,
+  setDimensions,
 } from "../excel.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -133,6 +136,61 @@ describe("Excel operations", () => {
       endRow: 3,
       endCol: 3,
     });
+  });
+
+  it("sets sheet visibility, data validation, and dimensions", async () => {
+    await setSheetVisibility({
+      filePath: tempFilePath,
+      sheetName: "Archive",
+      state: "hidden",
+    });
+
+    const meta = await getMetadata({ filePath: tempFilePath });
+    const archive = meta.sheets.find((s) => s.name === "Archive");
+    expect(archive?.state).toBe("hidden");
+
+    await setDataValidation({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      startCell: "E2",
+      endCell: "E3",
+      type: "list",
+      formulae: ['"A,B,C"'],
+      allowBlank: true,
+    });
+
+    const withValidation = await readSheet({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      range: "E2",
+      headerRow: 0,
+    });
+    expect(withValidation.rows[0].__validation_E).toBeDefined();
+
+    await setDataValidation({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      startCell: "E2",
+      endCell: "E3",
+      clear: true,
+    });
+
+    const cleared = await readSheet({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      range: "E2",
+      headerRow: 0,
+    });
+    expect(cleared.rows[0].__validation_E).toBeUndefined();
+
+    const dim = await setDimensions({
+      filePath: tempFilePath,
+      sheetName: "Data",
+      range: "A1:B2",
+      rowHeight: 24,
+      columnWidth: 16,
+    });
+    expect(dim.success).toBe(true);
   });
 
   it("writes human-readable dates and reads them with dateFormat", async () => {

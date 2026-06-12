@@ -20,6 +20,7 @@ export async function getMetadata(params: {
       name: ws.name,
       rowCount: ws.rowCount,
       columnCount: ws.actualColumnCount || 0,
+      state: ws.state ?? "visible",
     };
     if (!includeRanges) return base;
 

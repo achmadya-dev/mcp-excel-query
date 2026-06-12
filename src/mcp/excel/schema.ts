@@ -166,6 +166,67 @@ export const insertColumnsInputSchema = {
   count: z.number().optional(),
 };
 
+export const setSheetVisibilityInputSchema = {
+  filePath: filePathField,
+  sheetName: z.string().describe("Worksheet to show or hide"),
+  state: z
+    .enum(["visible", "hidden", "veryHidden"])
+    .describe("visible = shown; hidden = hidden (user can unhide); veryHidden = hidden from Excel UI unhide menu"),
+};
+
+const validationOperatorSchema = z.enum([
+  "between",
+  "notBetween",
+  "equal",
+  "notEqual",
+  "greaterThan",
+  "lessThan",
+  "greaterThanOrEqual",
+  "lessThanOrEqual",
+]);
+
+export const setDataValidationInputSchema = {
+  filePath: filePathField,
+  sheetName: sheetNameOptional,
+  startCell: z.string(),
+  endCell: z.string().optional(),
+  range: z.string().optional(),
+  clear: z.boolean().optional().describe("Remove data validation from the range"),
+  type: z
+    .enum(["list", "whole", "decimal", "date", "textLength", "custom"])
+    .optional()
+    .describe("Validation type (required unless clear:true)"),
+  operator: validationOperatorSchema.optional(),
+  formulae: z
+    .array(z.string())
+    .optional()
+    .describe('Formula strings, e.g. ["\\"Yes,No\\""] for list or ["=A1>0"] for custom'),
+  allowBlank: z.boolean().optional(),
+  showInputMessage: z.boolean().optional(),
+  prompt: z.string().optional(),
+  promptTitle: z.string().optional(),
+  showErrorMessage: z.boolean().optional(),
+  error: z.string().optional(),
+  errorTitle: z.string().optional(),
+};
+
+export const setDimensionsInputSchema = {
+  filePath: filePathField,
+  sheetName: sheetNameOptional,
+  range: z.string().optional(),
+  startCell: z.string().optional(),
+  endCell: z.string().optional(),
+  rows: z.array(z.number()).optional().describe("1-based row numbers for rowHeight"),
+  columns: z
+    .array(z.union([z.number(), z.string()]))
+    .optional()
+    .describe("1-based column indexes or letters for columnWidth"),
+  rowHeight: z.number().optional().describe("Row height in points"),
+  columnWidth: z.number().optional().describe("Column width in Excel character units"),
+  defaultRowHeight: z.number().optional().describe("Sheet default row height"),
+  defaultColumnWidth: z.number().optional().describe("Sheet default column width"),
+};
+
 export const readSheetOutputShape = {
   sheetName: z.string(),
   headers: z.array(z.string()).nullable(),
@@ -186,6 +247,7 @@ export const getMetadataOutputShape = {
       name: z.string(),
       rowCount: z.number(),
       columnCount: z.number(),
+      state: z.enum(["visible", "hidden", "veryHidden"]).optional(),
       usedRange: z.string().nullable().optional(),
       mergedCells: z.array(z.string()).optional(),
     })

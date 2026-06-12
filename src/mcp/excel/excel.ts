@@ -14,7 +14,9 @@ export { getMetadata, createFile } from "./workbook.js";
 export { readSheet } from "./read.js";
 export { writeRange } from "./write.js";
 export { formatRange } from "./format.js";
-export { copySheet, renameSheet, deleteSheet } from "./sheet.js";
+export { copySheet, renameSheet, deleteSheet, setSheetVisibility } from "./sheet.js";
+export { setDataValidation } from "./validation.js";
+export { setDimensions } from "./dimensions.js";
 export {
   copyRange,
   deleteRange,
