@@ -1,11 +1,31 @@
 const MONTH_SHORT = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 const MONTH_FULL = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const MONTH_INDEX: Record<string, number> = Object.fromEntries(
@@ -27,11 +47,7 @@ function excelSerialToDate(serial: number): Date | null {
 }
 
 export function normalizeExcelNumFmt(numFmt: string): string {
-  return numFmt
-    .replace(/\\"/g, " ")
-    .replace(/"/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return numFmt.replace(/\\"/g, " ").replace(/"/g, "").replace(/\s+/g, " ").trim();
 }
 
 export function parseDateValue(value: unknown): Date | null {

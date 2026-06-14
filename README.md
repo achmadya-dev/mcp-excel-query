@@ -1,8 +1,13 @@
-# mcp-excel-query
+# @achmadya-dev/mcp-excel-query
 
-MCP server for local `.xlsx` files via **stdio**. TypeScript + [ExcelJS](https://github.com/exceljs/exceljs).
+MCP server for local `.xlsx` files over **stdio**. TypeScript + [ExcelJS](https://github.com/exceljs/exceljs). Read, write, format, and manage workbooks without Microsoft Excel installed.
 
-## Install
+## Requirements
+
+- Node.js **≥ 20**
+- `.xlsx` files on the local filesystem (paths passed in tool arguments)
+
+## Install from npm
 
 ```json
 {
@@ -10,33 +15,71 @@ MCP server for local `.xlsx` files via **stdio**. TypeScript + [ExcelJS](https:/
     "excel": {
       "command": "npx",
       "args": ["-y", "@achmadya-dev/mcp-excel-query"],
-      "env": { "EXCEL_PAGING_CELLS_LIMIT": "4000" }
+      "env": {
+        "EXCEL_PAGING_CELLS_LIMIT": "4000"
+      }
     }
   }
 }
 ```
 
+Or use `envFile` instead of inline `env`.
+
+## Develop from source
+
+```bash
+cp .env.example .env
+pnpm install
+pnpm --filter @achmadya-dev/mcp-excel-query run build
+```
+
+`.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "excel": {
+      "command": "node",
+      "args": ["${workspaceFolder}/packages/mcp-excel-query/dist/index.js"],
+      "envFile": "${workspaceFolder}/.env"
+    }
+  }
+}
+```
+
+Relevant `.env` key:
+
+```env
+EXCEL_PAGING_CELLS_LIMIT=4000
+```
+
+## Environment variables
+
+| Variable                   | Default              | Description                                            |
+| -------------------------- | -------------------- | ------------------------------------------------------ |
+| `EXCEL_PAGING_CELLS_LIMIT` | _(unset = no limit)_ | Max cells returned per read; prevents huge sheet dumps |
+
 ## Tools (17)
 
-| Tool | Use for |
-|------|---------|
-| `excel_read_sheet` | Read JSON rows, formulas (`showFormula`), styles, `dateFormat` / `dateFormat: "cell"`, merged cells, validation metadata |
-| `excel_get_metadata` | Sheet names, dimensions, dates — use instead of a separate list-sheets tool |
-| `excel_create_file` | New workbook + optional headers |
-| `excel_write_range` | **Main write tool**: bulk data, append (`append:true`), new blank sheet (`newSheet:true`), single cell/formula (`startCell` + `values`), optional `style` |
-| `excel_format_range` | Font, fill, border, alignment, numFmt, merge (`mergeCells:true`) |
-| `excel_copy_sheet` | Duplicate worksheet |
-| `excel_rename_sheet` | Rename worksheet |
-| `excel_delete_sheet` | Delete worksheet |
-| `excel_copy_range` | Copy cells to another location |
-| `excel_delete_range` | Delete range; `shiftDirection: up` = rows, `left` = columns |
-| `excel_unmerge_cells` | Unmerge range |
-| `excel_create_table` | Native Excel table |
-| `excel_insert_rows` | Insert empty rows |
-| `excel_insert_columns` | Insert empty columns |
-| `excel_set_sheet_visibility` | Show, hide, or very-hide a sheet |
-| `excel_set_data_validation` | Set or clear dropdown/rules validation on a range |
-| `excel_set_dimensions` | Row height, column width, sheet defaults |
+| Tool                         | Use for                                                                      |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `excel_read_sheet`           | Read rows, formulas (`showFormula`), styles, dates, merged cells, validation |
+| `excel_get_metadata`         | Sheet names, dimensions, date info                                           |
+| `excel_create_file`          | New workbook + optional headers                                              |
+| `excel_write_range`          | Bulk write, append, new sheet, single cell/formula, optional style           |
+| `excel_format_range`         | Font, fill, border, alignment, numFmt, merge                                 |
+| `excel_copy_sheet`           | Duplicate worksheet                                                          |
+| `excel_rename_sheet`         | Rename worksheet                                                             |
+| `excel_delete_sheet`         | Delete worksheet                                                             |
+| `excel_copy_range`           | Copy cells to another location                                               |
+| `excel_delete_range`         | Delete range; `shiftDirection: up` or `left`                                 |
+| `excel_unmerge_cells`        | Unmerge range                                                                |
+| `excel_create_table`         | Native Excel table                                                           |
+| `excel_insert_rows`          | Insert empty rows                                                            |
+| `excel_insert_columns`       | Insert empty columns                                                         |
+| `excel_set_sheet_visibility` | Show, hide, or very-hide a sheet                                             |
+| `excel_set_data_validation`  | Dropdown / validation rules on a range                                       |
+| `excel_set_dimensions`       | Row height, column width, sheet defaults                                     |
 
 ### Common patterns
 
@@ -56,29 +99,25 @@ MCP server for local `.xlsx` files via **stdio**. TypeScript + [ExcelJS](https:/
 // Merge + format
 { "startCell": "A1", "endCell": "C1", "mergeCells": true, "bold": true }
 
-// Read dates in human-readable form (uses each cell's Excel numFmt)
+// Read dates using each cell's Excel numFmt
 { "range": "H3:H10", "headerRow": 0, "dateFormat": "cell" }
-
-// Write dates as text — auto-parsed to Excel date values
-{ "startCell": "H3", "values": [["09 Jun 2026"]] }
 
 // Hide a sheet
 { "sheetName": "Archive", "state": "hidden" }
 
-// Dropdown list validation
+// Dropdown validation
 { "startCell": "B2", "endCell": "B100", "type": "list", "formulae": ["\"Yes,No,Maybe\""] }
-
-// Column width and row height
-{ "range": "A1:D20", "columnWidth": 18, "rowHeight": 22 }
 ```
 
 ## Notes
 
 - Formulas are stored, not evaluated server-side.
-- `.xlsx` only.
+- `.xlsx` only (not `.xls` or `.csv`).
 
-## Development
+## Package scripts
 
 ```bash
-pnpm install && pnpm run build && pnpm test
+pnpm run build
+pnpm test
+pnpm start
 ```

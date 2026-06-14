@@ -2,22 +2,31 @@ import { describe, expect, it, beforeAll, afterAll } from "@jest/globals";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import {
-  parseA1Range,
-  createFile,
-  readSheet,
-  getMetadata,
-  writeRange,
-  formatRange,
-  copySheet,
-  renameSheet,
-  setSheetVisibility,
-  setDataValidation,
-  setDimensions,
-} from "../excel.js";
+import { Range } from "../range.js";
+import { excel_copy_sheet } from "../../tools/excel_copy_sheet.js";
+import { excel_create_file } from "../../tools/excel_create_file.js";
+import { excel_format_range } from "../../tools/excel_format_range.js";
+import { excel_get_metadata } from "../../tools/excel_get_metadata.js";
+import { excel_read_sheet } from "../../tools/excel_read_sheet.js";
+import { excel_rename_sheet } from "../../tools/excel_rename_sheet.js";
+import { excel_set_data_validation } from "../../tools/excel_set_data_validation.js";
+import { excel_set_dimensions } from "../../tools/excel_set_dimensions.js";
+import { excel_set_sheet_visibility } from "../../tools/excel_set_sheet_visibility.js";
+import { excel_write_range } from "../../tools/excel_write_range.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tempFilePath = path.join(__dirname, "temp_test_workbook.xlsx");
+
+const createFile = excel_create_file.handler;
+const getMetadata = excel_get_metadata.handler;
+const writeRange = excel_write_range.handler;
+const readSheet = excel_read_sheet.handler;
+const formatRange = excel_format_range.handler;
+const copySheet = excel_copy_sheet.handler;
+const renameSheet = excel_rename_sheet.handler;
+const setSheetVisibility = excel_set_sheet_visibility.handler;
+const setDataValidation = excel_set_data_validation.handler;
+const setDimensions = excel_set_dimensions.handler;
 
 describe("Excel operations", () => {
   beforeAll(() => {
@@ -130,7 +139,7 @@ describe("Excel operations", () => {
   });
 
   it("parses A1 ranges", () => {
-    expect(parseA1Range("A1:C3")).toEqual({
+    expect(Range.parse("A1:C3")).toEqual({
       startRow: 1,
       startCol: 1,
       endRow: 3,

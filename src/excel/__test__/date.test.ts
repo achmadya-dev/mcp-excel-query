@@ -1,9 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import {
-  formatDateValue,
-  normalizeExcelNumFmt,
-  parseDateValue,
-} from "../date.js";
+import { formatDateValue, normalizeExcelNumFmt, parseDateValue } from "../date.js";
 
 describe("date helpers", () => {
   it("parses ISO and human-readable date strings", () => {

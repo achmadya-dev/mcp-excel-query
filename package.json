@@ -30,13 +30,16 @@
     "build": "tsc -p tsconfig.build.json",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "start": "node dist/index.js",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "publish-packages": "pnpm run build && changeset publish"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.29.0",
+    "@achmadya-dev/mcp-core": "^0.3.3",
     "exceljs": "^4.4.0",
     "zod": "4.3.6"
   },
@@ -46,6 +49,8 @@
     "@types/node": "22.10.0",
     "jest": "30.4.2",
     "ts-jest": "29.4.11",
-    "typescript": "5.7.2"
-  }
+    "typescript": "5.7.2",
+    "@changesets/cli": "2.29.8"
+  },
+  "packageManager": "pnpm@10.33.0"
 }
