@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll } from "@jest/globals";
+import type { RegisterableTool } from "@achmadya-dev/mcp-core";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -17,16 +18,47 @@ import { excel_write_range } from "../../tools/excel_write_range.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tempFilePath = path.join(__dirname, "temp_test_workbook.xlsx");
 
-const createFile = excel_create_file.handler;
-const getMetadata = excel_get_metadata.handler;
-const writeRange = excel_write_range.handler;
-const readSheet = excel_read_sheet.handler;
-const formatRange = excel_format_range.handler;
-const copySheet = excel_copy_sheet.handler;
-const renameSheet = excel_rename_sheet.handler;
-const setSheetVisibility = excel_set_sheet_visibility.handler;
-const setDataValidation = excel_set_data_validation.handler;
-const setDimensions = excel_set_dimensions.handler;
+type OperationResult = { success: boolean; message: string };
+
+type MetadataResult = {
+  filePath: string;
+  creator: string | null;
+  lastModifiedBy: string | null;
+  created: string | null;
+  modified: string | null;
+  sheets: Array<{
+    name: string;
+    rowCount: number;
+    columnCount: number;
+    state?: "visible" | "hidden" | "veryHidden";
+    usedRange?: string | null;
+    mergedCells?: string[];
+  }>;
+};
+
+type ReadSheetResult = {
+  sheetName: string;
+  headers: string[] | null;
+  rows: Record<string, unknown>[];
+  totalRows: number;
+  mergedCells?: string[];
+  previewOnly?: boolean;
+};
+
+function typedHandler<TOut>(tool: RegisterableTool): (args: Record<string, unknown>) => Promise<TOut> {
+  return tool.handler as (args: Record<string, unknown>) => Promise<TOut>;
+}
+
+const createFile = typedHandler<OperationResult>(excel_create_file);
+const getMetadata = typedHandler<MetadataResult>(excel_get_metadata);
+const writeRange = typedHandler<OperationResult>(excel_write_range);
+const readSheet = typedHandler<ReadSheetResult>(excel_read_sheet);
+const formatRange = typedHandler<OperationResult>(excel_format_range);
+const copySheet = typedHandler<OperationResult>(excel_copy_sheet);
+const renameSheet = typedHandler<OperationResult>(excel_rename_sheet);
+const setSheetVisibility = typedHandler<OperationResult>(excel_set_sheet_visibility);
+const setDataValidation = typedHandler<OperationResult>(excel_set_data_validation);
+const setDimensions = typedHandler<OperationResult>(excel_set_dimensions);
 
 describe("Excel operations", () => {
   beforeAll(() => {
