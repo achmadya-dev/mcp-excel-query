@@ -28,30 +28,30 @@ Or use `envFile` instead of inline `env`.
 ## Develop from source
 
 ```bash
-cp .env.example .env
+git clone https://github.com/achmadya-dev/mcp-excel-query.git
+cd mcp-excel-query
 pnpm install
-pnpm --filter @achmadya-dev/mcp-excel-query run build
+pnpm run build
+pnpm test
 ```
 
-`.cursor/mcp.json`:
+Open the repo root in Cursor and register the built server in `.cursor/mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "excel": {
       "command": "node",
-      "args": ["${workspaceFolder}/packages/mcp-excel-query/dist/index.js"],
-      "envFile": "${workspaceFolder}/.env"
+      "args": ["${workspaceFolder}/dist/index.js"],
+      "env": {
+        "EXCEL_PAGING_CELLS_LIMIT": "4000"
+      }
     }
   }
 }
 ```
 
-Relevant `.env` key:
-
-```env
-EXCEL_PAGING_CELLS_LIMIT=4000
-```
+Or use `envFile` pointing at a `.env` in the repo root.
 
 ## Environment variables
 
