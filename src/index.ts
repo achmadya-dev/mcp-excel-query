@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { startMcpServer } from "@achmadya-dev/mcp-core";
+import { runMcp } from "@achmadya-dev/mcp-core";
 import packageJson from "../package.json" with { type: "json" };
 import { excel_copy_range } from "./tools/excel_copy_range.js";
 import { excel_copy_sheet } from "./tools/excel_copy_sheet.js";
@@ -19,9 +19,10 @@ import { excel_set_sheet_visibility } from "./tools/excel_set_sheet_visibility.j
 import { excel_unmerge_cells } from "./tools/excel_unmerge_cells.js";
 import { excel_write_range } from "./tools/excel_write_range.js";
 
-await startMcpServer({
+await runMcp({
   name: "Excel Local Manager",
   version: packageJson.version,
+  transport: "stdio",
   tools: [
     excel_read_sheet,
     excel_get_metadata,
