@@ -1,5 +1,11 @@
 # @achmadya-dev/mcp-excel-query
 
+## 0.3.3
+
+### Patch Changes
+
+- 798d79a: Bump `@achmadya-dev/mcp-core` to ^0.8.0.
+
 ## 0.3.2
 
 ### Patch Changes
