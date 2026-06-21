@@ -1,5 +1,11 @@
 # @achmadya-dev/mcp-excel-query
 
+## 0.3.2
+
+### Patch Changes
+
+- 5d6c60c: Bump @achmadya-dev/mcp-core to ^0.6.0 for tool result helpers and simplified registration API.
+
 ## 0.3.1
 
 ### Patch Changes
