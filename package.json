@@ -40,7 +40,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@achmadya-dev/mcp-core": "^0.6.0",
+    "@achmadya-dev/mcp-core": "^0.8.0",
     "exceljs": "^4.4.0",
     "zod": "4.3.6"
   },
