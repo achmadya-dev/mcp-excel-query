@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@achmadya-dev/mcp-core':
-        specifier: ^0.6.0
-        version: 0.6.0(express@5.2.1)(hono@4.12.26)
+        specifier: ^0.8.0
+        version: 0.8.0(express@5.2.1)(hono@4.12.26)
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0
@@ -45,8 +45,8 @@ importers:
 
 packages:
 
-  '@achmadya-dev/mcp-core@0.6.0':
-    resolution: {integrity: sha512-r/RrvzyKlifLuhi0+ZAHG3UpmKakAhW/QxizA3fWcrNqtcuh2nrr64/U2nKwFLD6/iam5YSCrmKh60a7h36lbw==}
+  '@achmadya-dev/mcp-core@0.8.0':
+    resolution: {integrity: sha512-/cczoEdXG003lTj8JB8f5k4Mo40zPfqrE7L5BP9uY/XSCQlEZLrHSc6wo4LAVBvlKi4FFAj0grDdMwKx6lkupQ==}
     engines: {node: '>=20'}
     peerDependencies:
       '@modelcontextprotocol/ext-apps': ^1.7.0
@@ -2172,7 +2172,7 @@ packages:
 
 snapshots:
 
-  '@achmadya-dev/mcp-core@0.6.0(express@5.2.1)(hono@4.12.26)':
+  '@achmadya-dev/mcp-core@0.8.0(express@5.2.1)(hono@4.12.26)':
     dependencies:
       '@cfworker/json-schema': 4.1.1
       '@modelcontextprotocol/express': 2.0.0-alpha.2(@modelcontextprotocol/server@2.0.0-alpha.2(@cfworker/json-schema@4.1.1))(express@5.2.1)
